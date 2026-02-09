@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockVote | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a1b25;
+            --secondary: #3a86ff;
+            --accent: #ff006e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ec4b6;
+            --warning: #ffbe0b;
+            --info: #3a86ff;
+            --card-bg: #2a2b36;
+            --text-light: #e9ecef;
+            --text-muted: #adb5bd;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary);
+            color: var(--text-light);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(58, 134, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 20%);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .wallet-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            background: var(--glass);
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .back-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            background: rgba(58, 134, 255, 0.1);
+        }
+        
+        .back-link:hover {
+            background: rgba(58, 134, 255, 0.2);
+        }
+        
+        h1 {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            font-size: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        h2 {
+            color: var(--text-light);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .admin-panel {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .admin-panel:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4);
+        }
+        
+        .add-btn:disabled {
+            background: #495057;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: var(--text-muted);
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            color: white;
+            padding: 1.2rem 1.8rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(200%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            max-width: 350px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #2ec4b6, #1ba391);
+        }
+        
+        .notification.warning {
+            background: linear-gradient(135deg, #ffbe0b, #fb5607);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #3a86ff, #4361ee);
+        }
+        
+        .photo-upload {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1.5rem;
+            border: 2px solid var(--glass-border);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-right: 1.5rem;
+            border: 2px solid var(--glass-border);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .upload-btn {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px dashed var(--glass-border);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .upload-btn:hover {
+            background: rgba(58, 134, 255, 0.1);
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+        
+        #candidateFace, #partyLogo {
+            display: none;
+        }
+        
+        .no-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-align: center;
+            padding: 5px;
+            margin-right: 1.5rem;
+            border: 1px dashed var(--glass-border);
+        }
+        
+        .no-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 10px;
+            text-align: center;
+            padding: 5px;
+            margin-right: 1.5rem;
+            border: 1px dashed var(--glass-border);
+        }
+        
+        .photos-container {
+            display: flex;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        
+        .photo-upload-container {
+            flex: 1;
+        }
+        
+        .photo-upload-label {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            display: block;
+            font-weight: 500;
+        }
+        
+        .admin-actions {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .end-voting-btn {
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3);
+        }
+        
+        .end-voting-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 110, 0.4);
+        }
+        
+        .end-voting-btn:disabled {
+            background: #495057;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: var(--text-muted);
+        }
+        
+        .status-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .status-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        .status-value.timer {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        
+        @media (max-width: 768px) {
+            .photos-container {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .photo-upload-container {
+                margin-right: 0;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .wallet-info {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .wallet-address {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">BlockVote</div>
+            <div class="wallet-info">
+                <span id="walletAddress" class="wallet-address"></span>
+                <a href="index.html" class="back-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Back to Voting
+                </a>
+            </div>
+        </header>
+        
+        <main>
+            <h1>Admin Panel</h1>
+            
+            <div class="status-item fade-in">
+                <div class="status-label">Voting Status</div>
+                <div class="status-value" id="votingStatus">Loading...</div>
+            </div>
+            
+            <div class="admin-panel fade-in">
+                <h2>Add New Candidate</h2>
+                
+                <div class="photos-container">
+                    <div class="photo-upload-container">
+                        <label class="photo-upload-label">Candidate Photo</label>
+                        <div class="photo-upload">
+                            <div id="facePreview" class="no-photo">No photo</div>
+                            <div>
+                                <label for="candidateFace" class="upload-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Choose Photo
+                                </label>
+                                <input type="file" id="candidateFace" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="photo-upload-container">
+                        <label class="photo-upload-label">Party Logo</label>
+                        <div class="photo-upload">
+                            <div id="logoPreview" class="no-logo">No logo</div>
+                            <div>
+                                <label for="partyLogo" class="upload-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Choose Logo
+                                </label>
+                                <input type="file" id="partyLogo" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="candidateName">Candidate Name</label>
+                    <input type="text" id="candidateName" placeholder="Enter candidate's full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="candidateParty">Political Party</label>
+                    <input type="text" id="candidateParty" placeholder="Enter party name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="candidatePromises">Promises & Platform</label>
+                    <textarea id="candidatePromises" placeholder="Describe the candidate's main promises and platform"></textarea>
+                </div>
+                
+                <button id="addCandidate" class="add-btn">Add Candidate</button>
+                
+                <div class="admin-actions">
+                    <h2>Admin Actions</h2>
+                    <button id="endVoting" class="end-voting-btn">End Voting </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        function showNotification(message, type = 'info', duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${message}</span>
+            `;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+    </script>
+    <!-- Rest of your JavaScript code remains the same -->
+    <script>
+        // Contract ABI (same as in main.js)
+        const contractABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "candidateId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    }
+                ],
+                "name": "CandidateAdded",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "voter",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "candidateId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Voted",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [],
+                "name": "VotingEnded",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "_name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "_party",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "_promises",
+                        "type": "string"
+                    }
+                ],
+                "name": "addCandidate",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "admin",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "candidates",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "party",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "promises",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "voteCount",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "candidatesCount",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "endVoting",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_candidateId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getCandidate",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "party",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "promises",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "voteCount",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getLeadingCandidate",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "leadingName",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "leadingVotes",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isTie",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_voter",
+                        "type": "address"
+                    }
+                ],
+                "name": "hasVoted",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "timeRemaining",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_candidateId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "vote",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "votingEnded",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "votingEndTime",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "voters",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "voted",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "vote",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+        const contractAddress = "0x93be202964f48BBf7B3d613100868DFF921a45f5";
+        
+        let web3;
+        let contract;
+        let accounts = [];
+        let isAdmin = false;
+        let candidateFaceBase64 = null;
+        let partyLogoBase64 = null;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if MetaMask is installed
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                
+                try {
+                    // Request account access
+                    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    if (accounts.length > 0) {
+                        // Display wallet address
+                        document.getElementById('walletAddress').textContent = 
+                            `${accounts[0].substring(0, 6)}...${accounts[0].substring(38)}`;
+                        
+                        // Check if user is admin
+                        const adminAddress = await contract.methods.admin().call();
+                        isAdmin = (accounts[0].toLowerCase() === adminAddress.toLowerCase());
+                        
+                        if (!isAdmin) {
+                            showNotification('Only admin can access this panel', 'error');
+                            document.getElementById('addCandidate').disabled = true;
+                            document.getElementById('endVoting').disabled = true;
+                        } else {
+                            // Add candidate button
+                            document.getElementById('addCandidate').addEventListener('click', addNewCandidate);
+                            
+                            // End voting button
+                            document.getElementById('endVoting').addEventListener('click', endVoting);
+                            
+                            // Photo upload handlers
+                            document.getElementById('candidateFace').addEventListener('change', handleFaceUpload);
+                            document.getElementById('partyLogo').addEventListener('change', handleLogoUpload);
+                            
+                            // Update voting status
+                            updateVotingStatus();
+                            setInterval(updateVotingStatus, 1000);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    showNotification('Error connecting wallet', 'error');
+                }
+            } else {
+                showNotification('Please install MetaMask', 'error');
+            }
+        });
+        
+        function handleFaceUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                showNotification('Please select an image file for candidate photo', 'error');
+                return;
+            }
+            
+            if (file.size > 500000) { // 500KB limit
+                showNotification('Image size should be less than 500KB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                candidateFaceBase64 = e.target.result;
+                const facePreview = document.getElementById('facePreview');
+                facePreview.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = candidateFaceBase64;
+                img.className = 'photo-preview';
+                facePreview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                showNotification('Please select an image file for party logo', 'error');
+                return;
+            }
+            
+            if (file.size > 300000) { // 300KB limit
+                showNotification('Logo size should be less than 300KB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                partyLogoBase64 = e.target.result;
+                const logoPreview = document.getElementById('logoPreview');
+                logoPreview.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = partyLogoBase64;
+                img.className = 'logo-preview';
+                logoPreview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        async function addNewCandidate() {
+            if (!isAdmin) return;
+            
+            const name = document.getElementById('candidateName').value.trim();
+            const party = document.getElementById('candidateParty').value.trim();
+            const promises = document.getElementById('candidatePromises').value.trim();
+            
+            if (!name) {
+                showNotification('Please enter candidate name', 'error');
+                return;
+            }
+            
+            if (!party) {
+                showNotification('Please enter political party', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('Adding candidate...', 'info');
+                
+                await contract.methods.addCandidate(name, party, promises).send({ from: accounts[0] });
+                
+                // Get the new candidate ID
+                const count = await contract.methods.candidatesCount().call();
+                
+                // Store the photos in localStorage with candidate ID as key
+                if (candidateFaceBase64) {
+                    localStorage.setItem(`candidate_face_${count}`, candidateFaceBase64);
+                }
+                
+                if (partyLogoBase64) {
+                    localStorage.setItem(`candidate_logo_${count}`, partyLogoBase64);
+                }
+                
+                showNotification('Candidate added successfully!', 'success');
+                
+                // Clear form
+                document.getElementById('candidateName').value = '';
+                document.getElementById('candidateParty').value = '';
+                document.getElementById('candidatePromises').value = '';
+                document.getElementById('facePreview').innerHTML = 'No photo';
+                document.getElementById('facePreview').className = 'no-photo';
+                document.getElementById('logoPreview').innerHTML = 'No logo';
+                document.getElementById('logoPreview').className = 'no-logo';
+                candidateFaceBase64 = null;
+                partyLogoBase64 = null;
+            } catch (error) {
+                console.error("Error adding candidate:", error);
+                showNotification('Error adding candidate: ' + (error.message || error), 'error');
+            }
+        }
+        
+        async function endVoting() {
+            if (!isAdmin) return;
+            
+            try {
+                showNotification('Ending voting...', 'info');
+                await contract.methods.endVoting().send({ from: accounts[0] });
+                showNotification('Voting has been ended', 'success');
+                updateVotingStatus();
+            } catch (error) {
+                console.error("Error ending voting:", error);
+                showNotification('Error ending voting: ' + (error.message || error), 'error');
+            }
+        }
+        
+        async function updateVotingStatus() {
+    try {
+        const votingEnded = await contract.methods.votingEnded().call();
+        
+        if (votingEnded) {
+            document.getElementById('votingStatus').textContent = "Voting Ended";
+            document.getElementById('endVoting').disabled = true;
+        } else {
+            document.getElementById('votingStatus').textContent = "Voting Active";
+            document.getElementById('endVoting').disabled = false;
+        }
+    } catch (error) {
+        console.error("Error updating voting status:", error);
+    }
+}
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        }
+        
+        function showNotification(message, type = 'info', duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockVote | Secure Blockchain Voting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a1b25;
+            --secondary: #3a86ff;
+            --accent: #ff006e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ec4b6;
+            --warning: #ffbe0b;
+            --info: #3a86ff;
+            --democrat: #0015BC;
+            --republican: #E9141D;
+            --card-bg: #2a2b36;
+            --text-light: #e9ecef;
+            --text-muted: #adb5bd;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary);
+            color: var(--text-light);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(58, 134, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 20%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .wallet-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4);
+        }
+        
+        .wallet-btn.connected {
+            background: linear-gradient(135deg, var(--success), #1ba391);
+            box-shadow: 0 4px 15px rgba(46, 196, 182, 0.3);
+        }
+        
+        .wallet-btn.connected:hover {
+            box-shadow: 0 6px 20px rgba(46, 196, 182, 0.4);
+        }
+        
+        .admin-link {
+            display: none;
+            margin-left: 1rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            background-color: rgba(255, 0, 110, 0.1);
+        }
+        
+        .admin-link:hover {
+            background-color: rgba(255, 0, 110, 0.2);
+        }
+        
+        h1 {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            font-size: 2.2rem;
+            position: relative;
+            padding-bottom: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .status-item {
+            flex: 1;
+            min-width: 200px;
+            padding: 1.5rem;
+            border-radius: 10px;
+            background: var(--card-bg);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .status-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        .status-value.leading {
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        .status-value.tie {
+            color: var(--warning);
+            font-weight: 700;
+        }
+        
+        .intro-text {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+        
+        .candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .candidate-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .candidate-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .candidate-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+        }
+        
+        .candidate-header {
+            padding: 2rem 2rem 1.5rem;
+            position: relative;
+            text-align: center;
+        }
+        
+        .candidate-photos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .candidate-face {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--card-bg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-face:hover {
+            transform: scale(1.05);
+        }
+        
+        .party-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: contain;
+            border: 3px solid var(--card-bg);
+            position: absolute;
+            bottom: -10px;
+            right: 25%;
+            background-color: var(--card-bg);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 3;
+            transition: all 0.3s ease;
+        }
+        
+        .party-logo:hover {
+            transform: scale(1.1);
+        }
+        
+        .candidate-name {
+            font-size: 1.5rem;
+            margin: 1rem 0 0.3rem;
+            font-weight: 600;
+            color: var(--text-light);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .candidate-party {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .candidate-id {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            margin-top: 0.3rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .candidate-body {
+            padding: 1.5rem 2rem 2rem;
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .candidate-detail {
+            margin-bottom: 1.5rem;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-light);
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+        
+        .candidate-promises {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            border-left: 3px solid var(--secondary);
+        }
+        
+        .candidate-votes {
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            color: white;
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+        }
+        
+        .vote-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+        }
+        
+        .vote-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4);
+        }
+        
+        .vote-btn:disabled {
+            background: #495057;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: var(--text-muted);
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            color: white;
+            padding: 1.2rem 1.8rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(200%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            max-width: 350px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #2ec4b6, #1ba391);
+        }
+        
+        .notification.warning {
+            background: linear-gradient(135deg, #ffbe0b, #fb5607);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #3a86ff, #4361ee);
+        }
+        
+        .no-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            padding: 5px;
+            margin: 0 auto 1rem;
+            border: 1px dashed var(--glass-border);
+        }
+        
+        .no-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 10px;
+            text-align: center;
+            padding: 5px;
+            border: 1px dashed var(--glass-border);
+        }
+        
+        @media (max-width: 992px) {
+            .status-bar {
+                flex-direction: column;
+            }
+            
+            .status-item {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .candidates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(58, 134, 255, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(58, 134, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(58, 134, 255, 0); }
+        }
+        
+        .glow {
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px rgba(58, 134, 255, 0.5); }
+            to { box-shadow: 0 0 20px rgba(58, 134, 255, 0.8); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">BlockVote</div>
+            <div>
+                <button id="connectWallet" class="wallet-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 8H22V4H18V8ZM16 20H18V18H16V20ZM18 18H20V16H18V18ZM4 8H8V4H4V8ZM6 16H8V14H6V16ZM8 14H10V12H8V14ZM8 12H10V10H8V12ZM6 12H8V10H6V12ZM4 10H6V8H4V10ZM20 16H22V14H20V16ZM4 14H6V12H4V14ZM20 14H22V12H20V14ZM12 16H14V14H12V16ZM14 14H16V12H14V14ZM12 12H14V10H12V12ZM10 16H12V14H10V16ZM16 16H18V14H16V16ZM4 16H6V14H4V16ZM12 10H14V8H12V10ZM10 10H12V8H10V10ZM16 10H18V8H16V10ZM14 8H16V6H14V8ZM12 6H14V4H12V6ZM10 8H12V6H10V8Z" fill="currentColor"/>
+                    </svg>
+                    Connect Wallet
+                </button>
+                <a href="admin.html" class="admin-link" id="adminLink">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="currentColor"/>
+                        <path d="M19.4 15C19.2669 15.3016 19.227 15.6363 19.2851 15.9606C19.3432 16.2849 19.4968 16.5835 19.725 16.8167C19.9532 17.0499 20.245 17.2069 20.5627 17.267C20.8803 17.3271 21.2086 17.2874 21.5 17.1533C21.6526 17.5413 21.6896 17.9651 21.6069 18.3743C21.5242 18.7835 21.3253 19.1603 21.0333 19.4583C20.7413 19.7563 20.3695 19.9624 19.964 20.0519C19.5585 20.1414 19.1373 20.1104 18.75 20.0625C18.5583 20.4202 18.2713 20.7184 17.9219 20.9239C17.5725 21.1294 17.1752 21.2342 16.7719 21.2266C16.3685 21.2189 15.9758 21.0991 15.635 20.8808C15.2942 20.6625 15.0194 20.3542 14.8438 19.9906C14.4835 20.0843 14.1064 20.0843 13.7461 19.9906C13.5705 20.3542 13.2957 20.6625 12.9549 20.8808C12.6141 21.0991 12.2214 21.2189 11.8181 21.2266C11.4148 21.2342 11.0175 21.1294 10.6681 20.9239C10.3187 20.7184 10.0317 20.4202 9.84002 20.0625C9.45268 20.1104 9.03152 20.1414 8.626 20.0519C8.22048 19.9624 7.84868 19.7563 7.55668 19.4583C7.26468 19.1603 7.06582 18.7835 6.98311 18.3743C6.9004 17.9651 6.93739 17.5413 7.09002 17.1533C7.38142 17.2874 7.70972 17.3271 8.02737 17.267C8.34502 17.2069 8.6368 17.0499 8.865 16.8167C9.0932 16.5835 9.24682 16.2849 9.30492 15.9606C9.36302 15.6363 9.32314 15.3016 9.19002 15C9.32314 14.6984 9.36302 14.3637 9.30492 14.0394C9.24682 13.7151 9.0932 13.4165 8.865 13.1833C8.6368 12.9501 8.34502 12.7931 8.02737 12.7329C7.70972 12.6728 7.38142 12.7125 7.09002 12.8467C6.93739 12.4587 6.9004 12.0349 6.98311 11.6257C7.06582 11.2165 7.26468 10.8397 7.55668 10.5417C7.84868 10.2437 8.22048 10.0376 8.626 9.9481C9.03152 9.85858 9.45268 9.88959 9.84002 9.9375C10.0317 9.57981 10.3187 9.28158 10.6681 9.07607C11.0175 8.87056 11.4148 8.76584 11.8181 8.77344C12.2214 8.78103 12.6141 8.90086 12.9549 9.11918C13.2957 9.3375 13.5705 9.64577 13.7461 10.0094C14.1064 9.91568 14.4835 9.91568 14.8438 10.0094C15.0194 9.64577 15.2942 9.3375 15.635 9.11918C15.9758 8.90086 16.3685 8.78103 16.7719 8.77344C17.1752 8.76584 17.5725 8.87056 17.9219 9.07607C18.2713 9.28158 18.5583 9.57981 18.75 9.9375C19.1373 9.88959 19.5585 9.85858 19.964 9.9481C20.3695 10.0376 20.7413 10.2437 21.0333 10.5417C21.3253 10.8397 21.5242 11.2165 21.6069 11.6257C21.6896 12.0349 21.6526 12.4587 21.5 12.8467C21.2086 12.7125 20.8803 12.6728 20.5627 12.7329C20.245 12.7931 19.9532 12.9501 19.725 13.1833C19.4968 13.4165 19.3432 13.7151 19.2851 14.0394C19.227 14.3637 19.2669 14.6984 19.4 15Z" fill="currentColor"/>
+                    </svg>
+                    Admin Panel
+                </a>
+            </div>
+        </header>
+        
+        <main>
+            <h1>Cast Your Vote</h1>
+            
+            <p class="intro-text">
+                Powered by Blockchain: <br>
+Your vote is secure, tamper-proof, and forever recorded.
+No cheating. No manipulation. Just pure, unstoppable democracy.
+            </p>
+            
+            <div class="status-bar fade-in">
+                <div class="status-item">
+                    <div class="status-label">Voting Status</div>
+                    <div class="status-value" id="votingStatus">Active</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Current Leader</div>
+                    <div class="status-value leading" id="currentLeader">Loading...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Total Votes Cast</div>
+                    <div class="status-value" id="totalVotes">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="candidates-grid" id="candidatesContainer">
+                <!-- Candidates will be loaded here -->
+            </div>
+        </main>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script src="main.js"></script>
+    <script>
+        function showNotification(message, type = 'info', duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>${message}</span>
+            `;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+    </script>
+</body>
+</html>

@@ -1,5 +1,4 @@
-Got it. You want **FULL README.md** in **pure Markdown code** (complete, no missing parts).
-Copy-paste this whole thing into `README.md`:
+
 
 ````md
 # BlockVote - Blockchain Voting System 🗳️🔗
@@ -156,36 +155,6 @@ Go to MetaMask → Networks → Add Network:
 
 Now connect wallet to the website.
 
----
-
-## 👨‍💼 Admin Access
-
-### How Admin Works
-
-* The wallet address that deploys the smart contract becomes the **Admin**
-* Only Admin can add candidates and end voting
-
-### Admin Capabilities
-
-* Add new candidates
-* Upload candidate photos / party logos
-* End voting
-* View all candidates
-
----
-
-## 📁 Project Structure
-
-```txt
-blockchain-voting/
-├── contracts/          # Smart contracts (Solidity)
-├── scripts/            # Deployment scripts
-├── frontend/           # Frontend UI
-├── backend/            # Express.js backend server
-├── public/             # Images & static assets
-├── artifacts/          # Compiled contract output
-└── config files
-```
 
 ---
 
@@ -203,46 +172,6 @@ blockchain-voting/
 * `endVoting()` → End election
 * `getLeadingCandidate()` → Check current leading candidate
 
----
-
-## 🔧 Troubleshooting
-
-### 1. MetaMask Not Detected
-
-* Install MetaMask extension
-* Ensure MetaMask is unlocked
-* Refresh the browser
-
-### 2. Wrong Network Issue
-
-* Ensure MetaMask is connected to:
-
-  * Localhost 7545
-  * RPC URL: `http://127.0.0.1:7545`
-
-### 3. Transaction Failed
-
-* Ensure Ganache is running
-* Ensure wallet has ETH (Ganache provides free ETH)
-* Ensure voting has not ended
-
-### 4. Admin Panel Not Showing
-
-* Only the deploying wallet is admin
-* Deploy using the same wallet account you are logged into
-
----
-
-## Reset Everything
-
-If you face major issues, reset and redeploy:
-
-```bash
-rm -rf artifacts cache
-
-npx hardhat compile
-npx hardhat run scripts/deploy.js --network ganache
-```
 
 ---
 
@@ -293,28 +222,6 @@ npx hardhat run scripts/deploy.js --network ganache
 * [ ] Result analytics dashboard
 
 ---
-
-## 📞 Support
-
-If you face issues:
-
-1. Check browser console (`F12`)
-2. Confirm contract address is updated in both places
-3. Ensure Ganache is running
-4. Ensure MetaMask network settings are correct
-
----
-
-## 📝 License
-
-This project is for educational purposes. Modify and use as needed.
-
----
-
-🎉 Congratulations! Your blockchain voting system is now running successfully.
-This system provides a secure, transparent method to conduct elections with immutable results stored on the blockchain.
-
-⚠️ Always test thoroughly before using in production environments.
 
 ```
 ```
